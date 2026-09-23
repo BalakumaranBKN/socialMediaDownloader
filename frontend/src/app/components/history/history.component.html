@@ -1,0 +1,65 @@
+<p-drawer 
+  [visible]="visible()" 
+  (visibleChange)="visibleChange.emit($event)" 
+  position="right" 
+  [style]="{ width: '400px', maxWidth: '92vw', background: '#0a0e1a', color: '#f8fafc' }">
+  
+  <ng-template #header>
+    <div class="drawer-header-custom">
+      <div class="drawer-title-box">
+        <i class="pi pi-history drawer-icon"></i>
+        <div>
+          <h3 class="drawer-title">BKN History</h3>
+          <span class="drawer-subtitle">Recent Media Extractions</span>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="history-content">
+    @if (items().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon-wrap">
+          <i class="pi pi-inbox empty-icon"></i>
+        </div>
+        <p class="empty-text">No downloads logged yet</p>
+        <span class="empty-sub">Links you fetch with BKN will automatically appear here for instant re-download.</span>
+      </div>
+    } @else {
+      <div class="history-actions-bar">
+        <span class="count-label">{{ items().length }} items recorded</span>
+        <p-button 
+          icon="pi pi-trash" 
+          label="Clear History" 
+          [text]="true" 
+          size="small" 
+          severity="danger"
+          (onClick)="clearHistory.emit()">
+        </p-button>
+      </div>
+
+      <div class="history-list">
+        @for (item of items(); track item.id) {
+          <div class="history-card glass-card" (click)="selectItem.emit(item.url)">
+            <div class="card-thumb">
+              @if (item.thumbnail) {
+                <img [src]="item.thumbnail" alt="Thumbnail" />
+              } @else {
+                <i class="pi pi-video no-thumb-icon"></i>
+              }
+            </div>
+            <div class="card-info">
+              <div class="info-top">
+                <span class="platform-chip">{{ item.platform_name }}</span>
+                <span class="time-label">{{ item.timestamp | date:'shortTime' }}</span>
+              </div>
+              <h4 class="item-title" [title]="item.title">{{ item.title || 'Untitled Media' }}</h4>
+              <span class="item-url">{{ item.url }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</p-drawer>
+

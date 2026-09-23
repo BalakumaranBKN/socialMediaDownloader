@@ -1,0 +1,22 @@
+# Python Virtual Environment & Bytecode
+backend/venv/
+backend/.venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.env
+backend/bkn_*
+backend/temp_*
+
+# Node & Frontend
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+frontend/.vscode/
+frontend/npm-debug.log*
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp

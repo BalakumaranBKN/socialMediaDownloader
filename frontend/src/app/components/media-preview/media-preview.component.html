@@ -1,0 +1,546 @@
+@if (media(); as info) {
+  <div class="media-card-container glass-panel">
+    <div class="card-grid">
+      <!-- Left Column: Visual Media Preview -->
+      <div class="media-visual">
+        @if (info.items && info.items.length > 1) {
+          <!-- Multi-Image / Carousel Viewer -->
+          <div class="carousel-wrapper">
+            <div class="carousel-main-container">
+              @if (currentItem()?.type === 'video') {
+                <video 
+                  [src]="currentItem()?.url" 
+                  [poster]="currentItem()?.thumbnail || info.thumbnail || ''"
+                  controls 
+                  playsinline 
+                  class="media-video">
+                </video>
+              } @else {
+                <img 
+                  [src]="currentItem()?.url || info.thumbnail" 
+                  [alt]="info.title" 
+                  class="media-image" 
+                />
+              }
+
+              <!-- Top Floating Badges -->
+              <div class="carousel-top-bar">
+                <span class="carousel-counter">
+                  <i class="pi pi-images mr-1"></i> {{ selectedItemIndex() + 1 }} / {{ info.items.length }}
+                </span>
+                @if (isItemSelected(selectedItemIndex())) {
+                  <span class="selected-badge">
+                    <i class="pi pi-check"></i> Selected
+                  </span>
+                }
+              </div>
+
+              <!-- Previous / Next Navigation Arrows -->
+              <button 
+                type="button" 
+                class="carousel-arrow prev-arrow" 
+                (click)="prevItem()" 
+                title="Previous media">
+                <i class="pi pi-chevron-left"></i>
+              </button>
+              <button 
+                type="button" 
+                class="carousel-arrow next-arrow" 
+                (click)="nextItem()" 
+                title="Next media">
+                <i class="pi pi-chevron-right"></i>
+              </button>
+            </div>
+
+            <!-- Thumbnail Carousel Bar -->
+            <div class="carousel-thumbs">
+              @for (item of info.items; track item.index; let i = $index) {
+                <div 
+                  class="thumb-item" 
+                  [class.active]="i === selectedItemIndex()"
+                  [class.checked]="isItemSelected(i)"
+                  (click)="selectItem(i)"
+                  [title]="'Preview Photo ' + (i + 1)">
+                  <img [src]="item.thumbnail || item.url" [alt]="'Photo ' + (i + 1)" />
+                  @if (item.type === 'video') {
+                    <i class="pi pi-play thumb-play-icon"></i>
+                  }
+                  @if (isItemSelected(i)) {
+                    <div class="thumb-check-overlay">
+                      <i class="pi pi-check"></i>
+                    </div>
+                  }
+                  <span class="thumb-number">{{ i + 1 }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        } @else if (info.media_type === 'video' || (info.formats && info.formats.length > 0 && !info.formats[0].is_image)) {
+          <!-- Single Video Player -->
+          <div class="player-wrapper">
+            <video 
+              [src]="activeVideoUrl()" 
+              [poster]="info.thumbnail || ''" 
+              controls 
+              playsinline
+              class="media-video">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        } @else {
+          <!-- Single Image / GIF -->
+          <div class="image-wrapper">
+            <img 
+              [src]="activeImageUrl()" 
+              [alt]="info.title" 
+              class="media-image"
+            />
+          </div>
+        }
+      </div>
+
+      <!-- Right Column: Details and Download Actions -->
+      <div class="media-content">
+        <!-- Platform & Type Badges -->
+        <div class="meta-tags">
+          <span class="platform-badge" [style.background-color]="platformColor(info.platform)">
+            <i class="pi" [ngClass]="info.platform_icon"></i>
+            {{ info.platform_name }}
+          </span>
+          <span class="bkn-verified-pill">
+            <i class="pi pi-verified"></i> BKN Stream
+          </span>
+          <p-tag 
+            [value]="(info.items && info.items.length > 1 ? (info.items.length + ' Photos (Album)') : info.media_type.toUpperCase())" 
+            [severity]="getMediaTypeSeverity(info.media_type)"
+            [rounded]="true">
+          </p-tag>
+          @if (info.duration_string) {
+            <span class="duration-badge">
+              <i class="pi pi-clock"></i> {{ info.duration_string }}
+            </span>
+          }
+        </div>
+
+
+        <!-- Title & Author -->
+        <h2 class="media-title">{{ info.title }}</h2>
+
+        @if (info.author && info.author !== 'Unknown') {
+          <div class="author-row">
+            <div class="author-avatar">
+              @if (info.author_avatar) {
+                <img [src]="info.author_avatar" alt="Avatar" />
+              } @else {
+                <i class="pi pi-user"></i>
+              }
+            </div>
+            <div class="author-info">
+              <span class="author-name">{{ info.author }}</span>
+              <a [href]="info.original_url" target="_blank" rel="noopener" class="view-post-link">
+                View original post <i class="pi pi-external-link"></i>
+              </a>
+            </div>
+          </div>
+        }
+
+        @if (info.description && info.description !== info.title) {
+          <p class="media-desc">{{ info.description }}</p>
+        }
+
+        <div class="divider"></div>
+
+        <!-- DOWNLOAD SECTION -->
+        <div class="download-section">
+          @if (info.items && info.items.length > 1) {
+            <!-- MULTI-IMAGE / CAROUSEL DOWNLOAD INTERFACE -->
+            <div class="multi-image-section">
+              <div class="section-header-row">
+                <div class="title-wrap">
+                  <h3 class="section-title">
+                    <i class="pi pi-images"></i> Select Particular Images
+                  </h3>
+                  <span class="selection-status">
+                    {{ selectedIndices().length }} of {{ info.items.length }} selected
+                  </span>
+                </div>
+                <div class="selection-tools">
+                  <p-button 
+                    label="Select All" 
+                    [text]="true" 
+                    size="small" 
+                    icon="pi pi-check-square" 
+                    (onClick)="selectAll()">
+                  </p-button>
+                  <p-button 
+                    label="Clear" 
+                    [text]="true" 
+                    size="small" 
+                    icon="pi pi-times" 
+                    severity="secondary" 
+                    (onClick)="clearSelection()">
+                  </p-button>
+                </div>
+              </div>
+
+              <!-- List of Individual Images with direct download & checkbox -->
+              <div class="items-list-container">
+                @for (item of info.items; track item.index; let i = $index) {
+                  <div 
+                    class="item-select-row" 
+                    [class.focused]="i === selectedItemIndex()"
+                    [class.checked]="isItemSelected(i)"
+                    (click)="selectItem(i)">
+                    
+                    <!-- Checkbox to include in batch download -->
+                    <label class="custom-checkbox" (click)="$event.stopPropagation()">
+                      <input 
+                        type="checkbox" 
+                        [checked]="isItemSelected(i)" 
+                        (change)="toggleSelect(i, $event)" 
+                      />
+                      <span class="checkmark"></span>
+                    </label>
+
+                    <!-- Thumbnail -->
+                    <div class="row-thumb">
+                      <img [src]="item.thumbnail || item.url" [alt]="'Photo ' + item.index" />
+                      @if (item.type === 'video') {
+                        <i class="pi pi-play mini-play"></i>
+                      }
+                    </div>
+
+                    <!-- Label & Details -->
+                    <div class="row-details">
+                      <div class="row-title-bar">
+                        <span class="item-name">
+                          {{ item.type === 'video' ? 'Video' : 'Photo' }} #{{ item.index }}
+                        </span>
+                        @if (i === selectedItemIndex()) {
+                          <span class="active-pill">
+                            <i class="pi pi-eye"></i> Viewing
+                          </span>
+                        }
+                      </div>
+                      <span class="item-meta">
+                        {{ item.resolution || 'Original High Res' }} • {{ item.ext.toUpperCase() }}
+                      </span>
+                    </div>
+
+                    <!-- Direct Instant Download Button for this particular item -->
+                    <div class="row-actions" (click)="$event.stopPropagation()">
+                      @if (item.type === 'video') {
+                        <div class="item-action-btns">
+                          <p-button 
+                            icon="pi pi-download" 
+                            label="Video" 
+                            [rounded]="true" 
+                            [outlined]="true" 
+                            size="small" 
+                            severity="primary"
+                            (onClick)="downloadParticularItem(item, $event, 'normal')"
+                            pTooltip="Download Video with Sound">
+                          </p-button>
+                          <p-button 
+                            icon="pi pi-volume-slash" 
+                            label="Mute" 
+                            [rounded]="true" 
+                            [outlined]="true" 
+                            size="small" 
+                            severity="warn"
+                            (onClick)="downloadParticularItem(item, $event, 'mute')"
+                            pTooltip="Download Muted Video">
+                          </p-button>
+                          <p-button 
+                            icon="pi pi-music" 
+                            label="Music" 
+                            [rounded]="true" 
+                            [outlined]="true" 
+                            size="small" 
+                            severity="success"
+                            (onClick)="downloadParticularItem(item, $event, 'music')"
+                            pTooltip="Download Music Track (MP3)">
+                          </p-button>
+                        </div>
+                      } @else {
+                        <p-button 
+                          icon="pi pi-download" 
+                          label="Download" 
+                          [rounded]="true" 
+                          [outlined]="true" 
+                          size="small" 
+                          severity="primary"
+                          (onClick)="downloadParticularItem(item, $event)"
+                          pTooltip="Download Photo #{{ item.index }} directly">
+                        </p-button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Action Buttons for Multi-Image -->
+              <div class="multi-download-actions">
+                <!-- Download Currently Active Photo -->
+                <p-button 
+                  icon="pi pi-download" 
+                  [label]="'Download Photo #' + (selectedItemIndex() + 1)" 
+                  [rounded]="true" 
+                  severity="primary"
+                  (onClick)="downloadCurrentCarouselItem()"
+                  class="primary-action-btn">
+                </p-button>
+
+                <!-- Download Selected Photos (if > 1 selected) -->
+                @if (selectedIndices().length > 1) {
+                  <p-button 
+                    icon="pi pi-check-circle" 
+                    [label]="'Download Selected (' + selectedIndices().length + ')'" 
+                    [rounded]="true" 
+                    severity="success"
+                    (onClick)="downloadSelectedItems()">
+                  </p-button>
+                }
+
+                <!-- Download All Photos -->
+                <p-button 
+                  icon="pi pi-images" 
+                  [label]="'Download All (' + info.items.length + ')'" 
+                  [rounded]="true" 
+                  [outlined]="true"
+                  severity="secondary"
+                  (onClick)="downloadAllItems()">
+                </p-button>
+              </div>
+            </div>
+
+          } @else if (isVideoMedia()) {
+            <!-- DEDICATED VIDEO DOWNLOAD OPTIONS: FULL VIDEO, MUTE, MUSIC -->
+            <div class="video-download-wrapper">
+              <h3 class="section-title">
+                <i class="pi pi-sliders-h"></i> Choose Download Option:
+              </h3>
+
+              <!-- 3 Interactive Option Cards -->
+              <div class="video-options-grid">
+                <!-- Option 1: Full Video with Sound -->
+                <div class="video-option-card glass-card card-video">
+                  <div class="opt-badge-tag"><i class="pi pi-check"></i> Recommended</div>
+                  <div class="opt-header">
+                    <div class="opt-icon-box video-icon-box">
+                      <i class="pi pi-video"></i>
+                    </div>
+                    <div class="opt-meta">
+                      <h4 class="opt-title">Full Video</h4>
+                      <span class="opt-sub">Original HD with Sound</span>
+                    </div>
+                  </div>
+                  <p class="opt-desc">Lossless high-definition video with original audio merged.</p>
+                  
+                  @if (videoFormats().length > 1) {
+                    <div class="quality-select-wrap">
+                      <label class="mini-label">Resolution:</label>
+                      <p-select 
+                        [options]="videoFormats()" 
+                        [(ngModel)]="selectedFormat" 
+                        optionLabel="quality_label" 
+                        placeholder="Resolution"
+                        class="mini-dropdown"
+                        [style]="{'width': '100%'}">
+                      </p-select>
+                    </div>
+                  }
+
+                  <p-button 
+                    icon="pi pi-download" 
+                    [label]="'Download ' + (selectedFormat?.resolution || 'Video')" 
+                    [rounded]="true" 
+                    severity="primary"
+                    (onClick)="downloadVideoNormal()"
+                    class="opt-btn-main">
+                  </p-button>
+                </div>
+
+                <!-- Option 2: Mute Video (No Audio) -->
+                <div class="video-option-card glass-card card-mute">
+                  <div class="opt-header">
+                    <div class="opt-icon-box mute-icon-box">
+                      <i class="pi pi-volume-slash"></i>
+                    </div>
+                    <div class="opt-meta">
+                      <h4 class="opt-title">Mute Video</h4>
+                      <span class="opt-sub">Video Only • No Audio</span>
+                    </div>
+                  </div>
+                  <p class="opt-desc">Stripped audio track, pure lossless video stream (MP4).</p>
+                  
+                  <div class="opt-chip-row">
+                    <span class="opt-spec-pill"><i class="pi pi-shield"></i> Silent MP4</span>
+                  </div>
+
+                  <p-button 
+                    icon="pi pi-volume-slash" 
+                    label="Download Mute" 
+                    [rounded]="true" 
+                    severity="warn"
+                    (onClick)="downloadVideoMute()"
+                    class="opt-btn-mute">
+                  </p-button>
+                </div>
+
+                <!-- Option 3: Music / Audio (MP3) -->
+                <div class="video-option-card glass-card card-music">
+                  <div class="opt-header">
+                    <div class="opt-icon-box music-icon-box">
+                      <i class="pi pi-music"></i>
+                    </div>
+                    <div class="opt-meta">
+                      <h4 class="opt-title">Music Track</h4>
+                      <span class="opt-sub">Audio Only • MP3</span>
+                    </div>
+                  </div>
+                  <p class="opt-desc">Extracted crystal-clear background music & audio track.</p>
+                  
+                  <div class="opt-chip-row">
+                    <span class="opt-spec-pill"><i class="pi pi-headphones"></i> 192kbps MP3</span>
+                  </div>
+
+                  <p-button 
+                    icon="pi pi-music" 
+                    label="Download Music" 
+                    [rounded]="true" 
+                    severity="success"
+                    (onClick)="downloadVideoMusic()"
+                    class="opt-btn-music">
+                  </p-button>
+                </div>
+              </div>
+
+              <!-- Format Dropdown fallback and Copy Link -->
+              <div class="video-footer-tools">
+                <div class="dropdown-fallback-wrap">
+                  <label class="picker-label">All Available Formats:</label>
+                  <p-select 
+                    [options]="info.formats" 
+                    [(ngModel)]="selectedFormat" 
+                    optionLabel="quality_label" 
+                    placeholder="Choose format"
+                    class="format-dropdown"
+                    [style]="{'width': '100%'}">
+                    <ng-template #item let-opt>
+                      <div class="format-option-item">
+                        <div class="opt-main">
+                          <i class="pi" [ngClass]="opt.is_audio_only ? 'pi-music' : (opt.is_mute ? 'pi-volume-slash' : (opt.is_image ? 'pi-image' : 'pi-video'))"></i>
+                          <span>{{ opt.quality_label }}</span>
+                        </div>
+                        @if (opt.filesize_formatted) {
+                          <span class="opt-size">{{ opt.filesize_formatted }}</span>
+                        }
+                      </div>
+                    </ng-template>
+                  </p-select>
+                </div>
+
+                <div class="secondary-btn-group">
+                  <p-button 
+                    icon="pi pi-download" 
+                    label="Download Selected Format" 
+                    [rounded]="true" 
+                    [outlined]="true"
+                    severity="primary"
+                    (onClick)="onDownloadChosen()"
+                    size="small">
+                  </p-button>
+                  <p-button 
+                    icon="pi pi-copy" 
+                    label="Copy Link" 
+                    [rounded]="true" 
+                    [outlined]="true" 
+                    severity="secondary" 
+                    size="small"
+                    (onClick)="copyMediaLink()"
+                    pTooltip="Copy direct media URL">
+                  </p-button>
+                </div>
+              </div>
+            </div>
+
+          } @else if (info.formats && info.formats.length > 0) {
+            <!-- SINGLE IMAGE / PHOTO FORMAT DROPDOWN -->
+            <h3 class="section-title">
+              <i class="pi pi-download"></i> Download Options
+            </h3>
+
+            <div class="format-picker-row">
+              <label class="picker-label">Select Quality / Format:</label>
+              <p-select 
+                [options]="info.formats" 
+                [(ngModel)]="selectedFormat" 
+                optionLabel="quality_label" 
+                placeholder="Choose resolution"
+                class="format-dropdown"
+                [style]="{'width': '100%'}">
+                <ng-template #item let-opt>
+                  <div class="format-option-item">
+                    <div class="opt-main">
+                      <i class="pi" [ngClass]="opt.is_audio_only ? 'pi-volume-up' : (opt.is_image ? 'pi-image' : 'pi-video')"></i>
+                      <span>{{ opt.quality_label }}</span>
+                    </div>
+                    @if (opt.filesize_formatted) {
+                      <span class="opt-size">{{ opt.filesize_formatted }}</span>
+                    }
+                  </div>
+                </ng-template>
+              </p-select>
+            </div>
+
+            <div class="download-actions">
+              <p-button 
+                icon="pi pi-download" 
+                [label]="'Download ' + (selectedFormat?.resolution || 'File')" 
+                [rounded]="true" 
+                (onClick)="onDownloadChosen()"
+                severity="primary"
+                class="main-download-btn">
+              </p-button>
+
+              <p-button 
+                icon="pi pi-copy" 
+                label="Copy Link" 
+                [rounded]="true" 
+                [outlined]="true" 
+                severity="secondary" 
+                (onClick)="copyMediaLink()"
+                pTooltip="Copy direct media URL">
+              </p-button>
+            </div>
+          } @else {
+            <!-- Single item fallback -->
+            <div class="download-actions">
+              <p-button 
+                icon="pi pi-download" 
+                label="Download Image" 
+                [rounded]="true" 
+                (onClick)="downloadCurrentCarouselItem()"
+                severity="primary"
+                class="main-download-btn">
+              </p-button>
+            </div>
+          }
+
+          <!-- Search Another Link -->
+          <div class="card-footer-actions">
+            <p-button 
+              icon="pi pi-arrow-left" 
+              label="Search Another Link" 
+              [text]="true" 
+              size="small"
+              severity="secondary"
+              (onClick)="close.emit()">
+            </p-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

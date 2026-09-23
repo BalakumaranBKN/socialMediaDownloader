@@ -1,0 +1,118 @@
+<div class="hero-section">
+  <!-- Top Tech Badge -->
+  <div class="hero-tech-badge">
+    <span class="badge-pulse"></span>
+    <span class="badge-text"><i class="pi pi-bolt mr-1"></i> BKN CORE ENGINE • UNIVERSAL MEDIA EXTRACTION</span>
+  </div>
+
+  <div class="hero-header">
+    <h1 class="hero-title">
+      BKN <span class="bkn-gradient-text">Social Platform Downloader</span>
+    </h1>
+    <p class="hero-desc">
+      Universal lossless downloader for <strong>Twitter / X</strong>, <strong>Instagram Reels & Carousels</strong>, <strong>Threads</strong>, <strong>TikTok</strong>, <strong>Reddit</strong>, <strong>YouTube Shorts</strong>, and <strong>Pinterest</strong>.
+    </p>
+
+    <!-- Key Capability Highlights -->
+    <div class="hero-capsules">
+      <span class="capsule-item"><i class="pi pi-video"></i> 4K / 1080p Full HD</span>
+      <span class="capsule-item"><i class="pi pi-images"></i> Multi-Photo Carousels</span>
+      <span class="capsule-item"><i class="pi pi-volume-up"></i> Lossless Audio MP3</span>
+      <span class="capsule-item"><i class="pi pi-shield"></i> No Watermarks & No Login</span>
+    </div>
+  </div>
+
+  <!-- Main Cyber Command Input Bar -->
+  <div class="input-container glass-panel" [class.focused]="isFocused">
+    <!-- Detected Platform Indicator -->
+    <div class="platform-indicator" [style.color]="detectedPlatform().color">
+      <i class="pi" [ngClass]="detectedPlatform().icon"></i>
+      <span class="platform-name">{{ detectedPlatform().name }}</span>
+    </div>
+
+    <div class="input-wrapper">
+      <input 
+        type="text" 
+        pInputText 
+        [(ngModel)]="url" 
+        (ngModelChange)="onUrlChange($event)"
+        (focus)="isFocused = true"
+        (blur)="isFocused = false"
+        (keyup.enter)="onSubmit()"
+        placeholder="Paste post or video URL (e.g., https://x.com/... or https://instagram.com/reel/...)"
+        class="url-field"
+        [disabled]="loading()"
+      />
+    </div>
+
+    <!-- Action Buttons inside input -->
+    <div class="action-buttons">
+      @if (url) {
+        <p-button 
+          icon="pi pi-times" 
+          [rounded]="true" 
+          [text]="true" 
+          severity="secondary"
+          (onClick)="clearUrl()"
+          pTooltip="Clear input"
+          size="small"
+          class="clear-btn">
+        </p-button>
+      }
+
+      <p-button 
+        icon="pi pi-clipboard" 
+        label="Paste" 
+        [rounded]="true" 
+        severity="secondary" 
+        [outlined]="true"
+        (onClick)="pasteClipboard()"
+        [disabled]="loading()"
+        size="small"
+        class="paste-btn">
+      </p-button>
+
+      <p-button 
+        [icon]="loading() ? 'pi pi-spin pi-spinner' : 'pi pi-arrow-right'" 
+        [label]="loading() ? 'Extracting...' : 'Fetch Media'" 
+        [rounded]="true" 
+        (onClick)="onSubmit()"
+        [disabled]="!url.trim() || loading()"
+        severity="primary"
+        class="fetch-btn">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Loading progress bar -->
+  @if (loading()) {
+    <div class="loading-bar-wrap">
+      <p-progressbar mode="indeterminate" [style]="{'height': '4px'}"></p-progressbar>
+      <span class="loading-label"><i class="pi pi-spin pi-spinner mr-1"></i> BKN Engine analyzing media metadata and format streams...</span>
+    </div>
+  }
+
+  <!-- Platform quick interactive chips -->
+  <div class="quick-examples">
+    <span class="examples-label">Supported Platforms:</span>
+    <button type="button" class="platform-tag x-tag" (click)="setPlatformExample('twitter')">
+      <i class="pi pi-twitter"></i> Twitter / X
+    </button>
+    <button type="button" class="platform-tag insta-tag" (click)="setPlatformExample('instagram')">
+      <i class="pi pi-instagram"></i> Instagram Reels
+    </button>
+    <button type="button" class="platform-tag threads-tag" (click)="setPlatformExample('threads')">
+      <i class="pi pi-at"></i> Threads
+    </button>
+    <button type="button" class="platform-tag tiktok-tag" (click)="setPlatformExample('tiktok')">
+      <i class="pi pi-video"></i> TikTok HD
+    </button>
+    <button type="button" class="platform-tag yt-tag" (click)="setPlatformExample('youtube')">
+      <i class="pi pi-youtube"></i> YouTube Shorts
+    </button>
+    <button type="button" class="platform-tag reddit-tag" (click)="setPlatformExample('reddit')">
+      <i class="pi pi-reddit"></i> Reddit
+    </button>
+  </div>
+</div>
+

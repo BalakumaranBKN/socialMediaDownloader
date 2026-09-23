@@ -1,0 +1,68 @@
+<div class="app-root">
+  <!-- PrimeNG Global Notification Toasts -->
+  <p-toast position="bottom-right"></p-toast>
+
+  <!-- Navigation Bar -->
+  <app-navbar 
+    [platforms]="downloader.platforms()"
+    [historyCount]="downloader.history().length"
+    (toggleHistory)="toggleHistoryDrawer()">
+  </app-navbar>
+
+  <main class="main-content">
+    <!-- Hero / Input Section -->
+    <app-url-input 
+      [loading]="downloader.loading()"
+      (urlSubmit)="handleUrlSubmit($event)">
+    </app-url-input>
+
+    <!-- Error Banner (if any) -->
+    @if (downloader.error()) {
+      <div class="error-banner glass-panel">
+        <i class="pi pi-exclamation-triangle"></i>
+        <div class="error-text">
+          <strong>BKN Engine: Extraction Interrupted</strong>
+          <p>{{ downloader.error() }}</p>
+        </div>
+        <button class="close-err-btn" (click)="downloader.error.set(null)" title="Dismiss">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    }
+
+    <!-- Media Preview & Download Formats Card -->
+    <app-media-preview 
+      [media]="downloader.mediaInfo()"
+      (downloadTrigger)="handleDownloadTrigger($event)"
+      (close)="clearMedia()">
+    </app-media-preview>
+  </main>
+
+  <!-- History Drawer -->
+  <app-history 
+    [visible]="historyDrawerVisible()"
+    [items]="downloader.history()"
+    (visibleChange)="historyDrawerVisible.set($event)"
+    (selectItem)="handleHistorySelect($event)"
+    (clearHistory)="handleClearHistory()">
+  </app-history>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <div class="footer-logo">
+          <span class="footer-bkn-brand">BKN</span>
+          <span class="footer-pipe">/</span>
+          <span class="footer-bkn-sub">Social Platform Downloader</span>
+        </div>
+        <span class="footer-copy">© 2026 BKN Engine • Lossless 4K & MP3 Media Stream Extractor</span>
+      </div>
+      <div class="footer-right">
+        <span class="status-pill"><span class="dot"></span> Systems Online</span>
+        <span class="tech-stack">FastAPI &bull; Angular 22 &bull; PrimeNG</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
