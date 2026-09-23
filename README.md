@@ -48,6 +48,33 @@ Frontend Web UI: [http://localhost:4200](http://localhost:4200)
 
 ---
 
+## 🌐 1-Click Cloud Deployment (Free)
+
+### Deploy to Render (Recommended - 100% Free)
+1. Go to [Render.com](https://render.com) and sign in with your GitHub account.
+2. Click **New +** > **Blueprint** (or **Web Service**).
+3. Connect your repository: `https://github.com/BalakumaranBKN/socialMediaDownloader`.
+4. Render will automatically read `render.yaml` and `Dockerfile`, install FFmpeg, build the Angular frontend, and deploy the entire full-stack app for free!
+5. Your app will be live at `https://<your-service-name>.onrender.com`!
+
+### Deploy to Railway
+1. Go to [Railway.app](https://railway.app) and click **New Project** > **Deploy from GitHub repo**.
+2. Select `BalakumaranBKN/socialMediaDownloader`.
+3. Railway automatically detects the `Dockerfile` and deploys your full-stack app.
+
+### Deploy with Docker (Self-Hosted / VPS)
+```bash
+# Clone the repository
+git clone https://github.com/BalakumaranBKN/socialMediaDownloader.git
+cd socialMediaDownloader
+
+# Build and start container
+docker compose up -d --build
+```
+Your app will be running on `http://localhost:8000` (or `http://<your-vps-ip>:8000`).
+
+---
+
 ## 📁 Project Structure
 
 ```

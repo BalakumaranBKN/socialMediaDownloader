@@ -23,11 +23,16 @@ app.add_middleware(
 app.include_router(media.router)
 
 # Detect production frontend build
-FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../frontend/dist/frontend/browser"))
-if not os.path.exists(FRONTEND_DIST):
-    FRONTEND_DIST = "/app/frontend/dist/frontend/browser"
+candidates = [
+    os.environ.get("FRONTEND_DIST", ""),
+    "/app/frontend_dist",
+    "/app/frontend/dist/frontend/browser",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../frontend/dist/frontend/browser")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../frontend_dist"))
+]
+FRONTEND_DIST = next((c for c in candidates if c and os.path.exists(c)), None)
 
-if os.path.exists(FRONTEND_DIST):
+if FRONTEND_DIST:
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         if full_path.startswith("api") or full_path.startswith("docs") or full_path == "openapi.json":
