@@ -45,9 +45,9 @@
 
     <!-- Actions -->
     <div class="nav-actions">
-      <div class="status-indicator" title="Media extraction engine is active">
+      <div class="status-indicator" (click)="changeServerUrl()" style="cursor: pointer;" title="Tap to change Server API URL">
         <span class="status-dot"></span>
-        <span class="status-label">Engine Ready</span>
+        <span class="status-label">Server</span>
       </div>
 
       <p-button 

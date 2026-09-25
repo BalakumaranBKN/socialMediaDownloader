@@ -2,15 +2,37 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { MediaInfo, PlatformInfo, HistoryItem } from '../models/media.model';
+import { Capacitor } from '@capacitor/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DownloaderService {
-  private readonly apiUrl = (typeof window !== 'undefined' && window.location.port === '4200')
-    ? 'http://localhost:8000/api'
-    : '/api';
+  private readonly API_STORAGE_KEY = 'omnigrab_api_url';
   private readonly HISTORY_KEY = 'social_dl_history';
+
+  get apiUrl(): string {
+    if (typeof window !== 'undefined') {
+      const customUrl = localStorage.getItem(this.API_STORAGE_KEY);
+      if (customUrl) return customUrl.replace(/\/+$/, '');
+
+      if (Capacitor.isNativePlatform()) {
+        return 'http://192.168.1.5:8000/api';
+      }
+
+      if (window.location.port === '4200') {
+        return 'http://localhost:8000/api';
+      }
+    }
+    return '/api';
+  }
+
+  setCustomApiUrl(url: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(this.API_STORAGE_KEY, url);
+      this.fetchPlatforms();
+    }
+  }
 
   // Signals for reactive state management
   mediaInfo = signal<MediaInfo | null>(null);
