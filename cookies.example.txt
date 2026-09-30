@@ -1,0 +1,9 @@
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/rfc/cookie_spec.html
+# This is a sample format file. 
+# To download private or login-restricted Instagram content:
+# 1. Install a browser extension like "Get cookies.txt LOCALLY" (Chrome / Firefox / Edge).
+# 2. Go to instagram.com and log in with your account.
+# 3. Open the extension, click "Export", and save the file as "cookies.txt".
+# 4. Place "cookies.txt" directly in this folder (d:\Project\socialvideo\cookies.txt) or inside "backend/cookies.txt".
+# 5. Restart or make a download request — OmniGrab will automatically load the cookies!

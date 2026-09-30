@@ -110,6 +110,23 @@ def format_filesize(size_bytes: Optional[int]) -> Optional[str]:
     return f"{size_bytes:.1f} TB"
 
 
+def find_cookies_file() -> Optional[str]:
+    env_cookie = os.environ.get("COOKIES_FILE")
+    if env_cookie and os.path.isfile(env_cookie):
+        return os.path.abspath(env_cookie)
+
+    candidates = [
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../cookies.txt")),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "../../cookies.txt")),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "../cookies.txt")),
+        os.path.abspath("cookies.txt"),
+    ]
+    for c in candidates:
+        if os.path.isfile(c) and os.path.getsize(c) > 0:
+            return c
+    return None
+
+
 def get_default_ydl_opts() -> Dict[str, Any]:
     opts = {
         'skip_download': True,
@@ -125,6 +142,13 @@ def get_default_ydl_opts() -> Dict[str, Any]:
     }
     if FFMPEG_PATH:
         opts['ffmpeg_location'] = FFMPEG_PATH
+
+    cookie_path = find_cookies_file()
+    if cookie_path:
+        opts['cookiefile'] = cookie_path
+    elif os.environ.get("BROWSER_COOKIES"):
+        opts['cookiesfrombrowser'] = (os.environ["BROWSER_COOKIES"],)
+
     return opts
 
 
@@ -280,7 +304,23 @@ def extract_instagram_media(url: str) -> Optional[MediaInfoResponse]:
         ydl_opts = get_default_ydl_opts()
         ydl = yt_dlp.YoutubeDL(ydl_opts)
         ie = InstagramIE(ydl)
+
+        # Bypass raise_no_formats so photo & carousel posts are never aborted
+        saved_product = {}
+        orig_extract_product = ie._extract_product
+
+        def mock_extract_product(*args, **kwargs):
+            res_dict = orig_extract_product(*args, **kwargs)
+            if isinstance(res_dict, dict):
+                saved_product.update(res_dict)
+            return res_dict
+
+        ie._extract_product = mock_extract_product
+        ie.raise_no_formats = lambda *args, **kwargs: None
+
         res = ie._real_extract(url)
+        if not res:
+            res = saved_product
         if not res:
             return None
 
@@ -585,4 +625,20 @@ def extract_media_info(url: str) -> MediaInfoResponse:
             fx_result = try_fxtwitter_fallback(url)
             if fx_result:
                 return fx_result
-        raise RuntimeError(f"Error fetching media: {str(e)}")
+
+        err_msg = str(e)
+        if platform_data["id"] == "instagram" and ("empty media response" in err_msg or "login" in err_msg.lower()):
+            cookie_file = find_cookies_file()
+            if not cookie_file:
+                raise RuntimeError(
+                    "Instagram requires login to access this post/reel. "
+                    "To download Instagram media, export your Instagram cookies (e.g. using 'Get cookies.txt LOCALLY' browser extension) "
+                    "and place the saved 'cookies.txt' file in the root project folder or 'backend/' folder."
+                )
+            else:
+                raise RuntimeError(
+                    f"Instagram request failed using cookies ({os.path.basename(cookie_file)}). "
+                    "The cookies may have expired or this post is restricted/private. Please re-export fresh cookies."
+                )
+
+        raise RuntimeError(f"Error fetching media: {err_msg}")

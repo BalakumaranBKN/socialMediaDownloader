@@ -23,3 +23,5 @@ Thumbs.db
 *.apk
 frontend/android/app/build/
 frontend/android/.gradle/
+cookies.txt
+backend/cookies.txt
