@@ -17,7 +17,7 @@ export class DownloaderService {
       if (customUrl) return customUrl.replace(/\/+$/, '');
 
       if (Capacitor.isNativePlatform()) {
-        return 'http://192.168.1.5:8000/api';
+        return 'https://socialmediadownloader-2.onrender.com/api';
       }
 
       if (window.location.port === '4200') {
